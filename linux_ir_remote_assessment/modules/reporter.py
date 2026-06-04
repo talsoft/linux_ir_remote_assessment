@@ -6,7 +6,6 @@ import html
 import json
 from dataclasses import asdict
 from logging import Logger
-from pathlib import Path
 
 from modules.config import AssessmentConfig
 from modules.models import CollectionResult, Finding
@@ -39,19 +38,19 @@ def generate_reports(
 
 
 def _overall_risk(findings: list[Finding]) -> str:
-    if any(finding.severity.lower() in ("crítico", "critico") for finding in findings):
-        return "Crítico"
-    if any(finding.severity.lower() == "alto" for finding in findings):
-        return "Alto"
-    if any(finding.severity.lower() == "medio" for finding in findings):
-        return "Medio"
-    return "Bajo"
+    if any(finding.severity.lower() == "critical" for finding in findings):
+        return "Critical"
+    if any(finding.severity.lower() == "high" for finding in findings):
+        return "High"
+    if any(finding.severity.lower() == "medium" for finding in findings):
+        return "Medium"
+    return "Low"
 
 
 def _ioc_report(findings: list[Finding]) -> dict[str, object]:
     indicators = []
     for finding in findings:
-        if finding.category in ("malware", "abuse", "procesos", "persistencia", "rootkit"):
+        if finding.category in ("malware", "abuse", "processes", "persistence", "rootkit"):
             indicators.append(asdict(finding))
     return {"indicator_count": len(indicators), "indicators": indicators}
 
@@ -81,7 +80,7 @@ def _markdown_report(
         "",
         f"**{risk}**",
         "",
-        "## 3. Hallazgos Principales",
+        "## 3. Key Findings",
         "",
     ]
     if findings:
@@ -90,43 +89,43 @@ def _markdown_report(
                 [
                     f"### {finding.title}",
                     "",
-                    f"- Severidad: {finding.severity}",
-                    f"- Confianza: {finding.confidence}",
-                    f"- Categoría: {finding.category}",
-                    f"- Descripción: {finding.description}",
-                    f"- Recomendación: {finding.recommendation or 'Revisar manualmente.'}",
-                    f"- Evidencia: {', '.join(finding.evidence) if finding.evidence else 'N/A'}",
+                    f"- Severity: {finding.severity}",
+                    f"- Confidence: {finding.confidence}",
+                    f"- Category: {finding.category}",
+                    f"- Description: {finding.description}",
+                    f"- Recommendation: {finding.recommendation or 'Review manually.'}",
+                    f"- Evidence: {', '.join(finding.evidence) if finding.evidence else 'N/A'}",
                     "",
                 ]
             )
     else:
-        lines.extend(["No se generaron hallazgos automáticos en esta ejecución.", ""])
+        lines.extend(["No automated findings were generated in this execution.", ""])
 
     lines.extend(["## 4. Root Cause Analysis", ""])
     if root_cause:
         for item in root_cause:
             lines.extend(
                 [
-                    f"- Proceso/PID: `{item.get('pid', 'N/A')}`",
-                    f"- Usuario: `{item.get('user', 'N/A')}`",
-                    f"- Ruta: `{item.get('binary_path', 'N/A')}`",
+                    f"- Process/PID: `{item.get('pid', 'N/A')}`",
+                    f"- User: `{item.get('user', 'N/A')}`",
+                    f"- Path: `{item.get('binary_path', 'N/A')}`",
                     f"- SHA256: `{item.get('sha256', 'N/A')}`",
-                    f"- Comando: `{item.get('command', 'N/A')}`",
-                    f"- Inicio: `{item.get('start_time', 'N/A')}`",
-                    f"- Conexiones: {', '.join(item.get('connections', [])) if isinstance(item.get('connections'), list) else 'N/A'}",
-                    f"- Nivel de confianza: {item.get('confidence', 'N/A')}",
-                    f"- Clasificación: {item.get('classification', 'N/A')}",
+                    f"- Command: `{item.get('command', 'N/A')}`",
+                    f"- Start time: `{item.get('start_time', 'N/A')}`",
+                    f"- Connections: {', '.join(item.get('connections', [])) if isinstance(item.get('connections'), list) else 'N/A'}",
+                    f"- Confidence level: {item.get('confidence', 'N/A')}",
+                    f"- Classification: {item.get('classification', 'N/A')}",
                     "",
                 ]
             )
     else:
-        lines.extend(["No se identificó automáticamente un proceso raíz de abuso saliente.", ""])
+        lines.extend(["No outbound abuse root-cause process was automatically identified.", ""])
 
     category_sections = [
-        ("## 5. Procesos Sospechosos", "procesos"),
-        ("## 6. Conexiones Sospechosas", "abuse"),
-        ("## 7. Usuarios y Accesos", "usuarios"),
-        ("## 8. Persistencia Detectada", "persistencia"),
+        ("## 5. Suspicious Processes", "processes"),
+        ("## 6. Suspicious Connections", "abuse"),
+        ("## 7. Users and Access", "users"),
+        ("## 8. Detected Persistence", "persistence"),
         ("## 9. Malware Indicators", "malware"),
         ("## 10. Rootkit Indicators", "rootkit"),
     ]
@@ -136,55 +135,55 @@ def _markdown_report(
         if matching:
             lines.extend([f"- {finding.severity}: {finding.title}" for finding in matching])
         else:
-            lines.append("Sin hallazgos automáticos en esta categoría.")
+            lines.append("No automated findings in this category.")
         lines.append("")
 
     lines.extend(["## 11. Firewall Status", ""])
     fw = _command_path(collection, "firewall_status")
-    lines.extend([f"Evidencia: `{fw or 'N/A'}`", ""])
+    lines.extend([f"Evidence: `{fw or 'N/A'}`", ""])
 
-    lines.extend(["## 12. Acciones Aplicadas", ""])
+    lines.extend(["## 12. Applied Actions", ""])
     if actions:
         lines.append("```json")
         lines.append(json.dumps(actions, indent=2, default=str))
         lines.append("```")
     else:
-        lines.append("No se aplicaron acciones de contención/remediación.")
+        lines.append("No containment or remediation actions were applied.")
     lines.append("")
 
     lines.extend(
         [
-            "## 13. Recomendaciones Inmediatas",
+            "## 13. Immediate Recommendations",
             "",
-            "- Preservar evidencia recolectada y no eliminar binarios sospechosos antes de hashearlos.",
-            "- Bloquear salidas no necesarias a puertos 22, 21, 23, 25, 465 y 587 si el negocio lo permite.",
-            "- Rotar credenciales y revisar llaves SSH autorizadas.",
-            "- Si existe evidencia de rootkit o binarios del sistema alterados, priorizar reconstrucción desde imagen limpia.",
+            "- Preserve collected evidence and do not delete suspicious binaries before hashing them.",
+            "- Block unnecessary outbound traffic to ports 22, 21, 23, and 587 if business requirements allow it.",
+            "- Rotate credentials and review authorized SSH keys.",
+            "- If there is evidence of rootkit activity or altered system binaries, prioritize rebuilding from a clean image.",
             "",
-            "## 14. Recomendaciones de Hardening",
+            "## 14. Hardening Recommendations",
             "",
-            "- Deshabilitar PasswordAuthentication y PermitRootLogin tras validar accesos alternativos.",
-            "- Implementar Fail2Ban o controles equivalentes en SSH.",
-            "- Mantener EDR/antimalware y logging centralizado.",
-            "- Restringir egreso por firewall con reglas explícitas por necesidad.",
+            "- Disable PasswordAuthentication and PermitRootLogin after validating alternative access.",
+            "- Implement Fail2Ban or equivalent SSH controls.",
+            "- Maintain EDR/antimalware coverage and centralized logging.",
+            "- Restrict egress traffic with explicit firewall rules based on business need.",
             "",
-            "## 15. Evidencias Recolectadas",
+            "## 15. Collected Evidence",
             "",
-            f"- Índice: `{config.paths.evidence_index}`",
-            f"- Comandos: `{config.paths.commands_log}`",
-            f"- Evidencia cruda: `{config.paths.raw_dir}`",
+            f"- Index: `{config.paths.evidence_index}`",
+            f"- Commands: `{config.paths.commands_log}`",
+            f"- Raw evidence: `{config.paths.raw_dir}`",
             "",
-            "## 16. Limitaciones del Análisis",
+            "## 16. Analysis Limitations",
             "",
-            "- El análisis remoto depende de la integridad del sistema comprometido.",
-            "- Un rootkit activo podría ocultar procesos, archivos o conexiones.",
-            "- Las herramientas rkhunter/chkrootkit/clamscan/debsums/rpm solo se ejecutan si ya existen.",
+            "- Remote analysis depends on the integrity of the compromised system.",
+            "- An active rootkit may hide processes, files, or connections.",
+            "- rkhunter/chkrootkit/clamscan/debsums/rpm tools run only if they already exist.",
             "",
-            "## 17. Próximos Pasos",
+            "## 17. Next Steps",
             "",
-            "- Revisar manualmente hallazgos de alta severidad.",
-            "- Correlacionar con logs perimetrales, cloud, panel del proveedor y reportes de abuso.",
-            "- Definir si conviene remediar o reconstruir según alcance, persistencia y confianza en integridad.",
+            "- Manually review high-severity findings.",
+            "- Correlate with perimeter logs, cloud logs, provider portal data, and abuse reports.",
+            "- Decide whether to remediate or rebuild based on scope, persistence, and confidence in system integrity.",
             "",
         ]
     )

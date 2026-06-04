@@ -69,13 +69,13 @@ def _detect_uid0_users(by_name: dict) -> list[Finding]:
     return [
         Finding(
             id="USER_UID0_EXTRA",
-            title="Usuarios adicionales con UID 0",
-            severity="Crítico",
-            confidence="Alto",
-            category="usuarios",
-            description=f"Se detectaron cuentas con privilegios equivalentes a root: {', '.join(non_root)}.",
+            title="Additional users with UID 0",
+            severity="Critical",
+            confidence="High",
+            category="users",
+            description=f"Accounts with root-equivalent privileges were detected: {', '.join(non_root)}.",
             evidence=[result.evidence_path or ""],
-            recommendation="Validar si las cuentas UID 0 son legítimas; deshabilitarlas si no están justificadas.",
+            recommendation="Validate whether the UID 0 accounts are legitimate; disable them if they are not justified.",
         )
     ]
 
@@ -87,13 +87,13 @@ def _detect_tmp_processes(by_name: dict) -> list[Finding]:
     return [
         Finding(
             id="PROC_TMP_EXECUTION",
-            title="Procesos ejecutándose desde directorios temporales",
-            severity="Alto",
-            confidence="Medio",
-            category="procesos",
-            description="Hay procesos activos con rutas bajo /tmp, /var/tmp o /dev/shm, patrón frecuente en compromisos Linux.",
+            title="Processes running from temporary directories",
+            severity="High",
+            confidence="Medium",
+            category="processes",
+            description="Active processes were found with paths under /tmp, /var/tmp, or /dev/shm, a frequent pattern in Linux compromises.",
             evidence=[result.evidence_path or ""],
-            recommendation="Correlacionar PID, usuario y hash; preservar el binario antes de detenerlo o cuarentenarlo.",
+            recommendation="Correlate PID, user, and hash; preserve the binary before stopping or quarantining it.",
         )
     ]
 
@@ -111,13 +111,13 @@ def _detect_iocs(by_name: dict) -> list[Finding]:
             findings.append(
                 Finding(
                     id=f"IOC_{source.upper()}",
-                    title=f"Indicadores conocidos detectados en {source}",
-                    severity="Alto",
-                    confidence="Medio",
+                    title=f"Known indicators detected in {source}",
+                    severity="High",
+                    confidence="Medium",
                     category="malware",
-                    description=f"Se observaron términos asociados a abuso o malware: {', '.join(hits)}.",
+                    description=f"Terms associated with abuse or malware were observed: {', '.join(hits)}.",
                     evidence=[result.evidence_path or ""],
-                    recommendation="Validar binarios, hashes y propietario del proceso antes de aplicar contención.",
+                    recommendation="Validate binaries, hashes, and process ownership before applying containment.",
                     metadata={"hits": hits, "source": source},
                 )
             )
@@ -136,13 +136,13 @@ def _detect_persistence(by_name: dict) -> list[Finding]:
             findings.append(
                 Finding(
                     id=f"PERSISTENCE_{source.upper()}",
-                    title=f"Persistencia sospechosa en {source}",
-                    severity="Alto" if source != "ld_preload" else "Crítico",
-                    confidence="Medio",
-                    category="persistencia",
-                    description="Se detectaron comandos o ubicaciones compatibles con persistencia maliciosa.",
+                    title=f"Suspicious persistence in {source}",
+                    severity="High" if source != "ld_preload" else "Critical",
+                    confidence="Medium",
+                    category="persistence",
+                    description="Commands or locations compatible with malicious persistence were detected.",
                     evidence=[result.evidence_path or ""],
-                    recommendation="Revisar entradas, preservar contenido, y deshabilitar solo tras confirmación.",
+                    recommendation="Review entries, preserve content, and disable only after confirmation.",
                     metadata={"hits": hits, "source": source},
                 )
             )
@@ -156,13 +156,13 @@ def _detect_deleted_executables(by_name: dict) -> list[Finding]:
     return [
         Finding(
             id="PROC_DELETED_EXECUTABLE",
-            title="Procesos con ejecutables eliminados",
-            severity="Alto",
-            confidence="Alto",
-            category="procesos",
-            description="Se encontraron procesos cuyo ejecutable en /proc apunta a un archivo eliminado.",
+            title="Processes with deleted executables",
+            severity="High",
+            confidence="High",
+            category="processes",
+            description="Processes were found whose /proc executable link points to a deleted file.",
             evidence=[result.evidence_path or ""],
-            recommendation="Preservar memoria/proc metadata si es posible y correlacionar con conexiones activas.",
+            recommendation="Preserve memory/proc metadata if possible and correlate with active connections.",
         )
     ]
 
@@ -174,13 +174,13 @@ def _detect_rootkit_indicators(by_name: dict) -> list[Finding]:
         findings.append(
             Finding(
                 id="ROOTKIT_TOOLS_MISSING",
-                title="Herramientas rootkit no disponibles",
-                severity="Bajo",
-                confidence="Alto",
+                title="Rootkit tools not available",
+                severity="Low",
+                confidence="High",
                 category="rootkit",
-                description="rkhunter, chkrootkit o clamscan no están instalados en el servidor.",
+                description="rkhunter, chkrootkit, or clamscan are not installed on the server.",
                 evidence=[tools.evidence_path or ""],
-                recommendation="Instalar herramientas desde repositorios confiables durante remediación o en imagen forense equivalente.",
+                recommendation="Install tools from trusted repositories during remediation or on an equivalent forensic image.",
             )
         )
     for source in ("rkhunter", "chkrootkit", "clamscan_tmp"):
@@ -192,13 +192,13 @@ def _detect_rootkit_indicators(by_name: dict) -> list[Finding]:
             findings.append(
                 Finding(
                     id=f"ROOTKIT_{source.upper()}",
-                    title=f"Indicadores reportados por {source}",
-                    severity="Alto",
-                    confidence="Medio",
+                    title=f"Indicators reported by {source}",
+                    severity="High",
+                    confidence="Medium",
                     category="rootkit",
-                    description=f"La herramienta {source} reportó posibles indicadores.",
+                    description=f"The {source} tool reported possible indicators.",
                     evidence=[result.evidence_path or ""],
-                    recommendation="Validar hallazgos manualmente y comparar contra una imagen limpia.",
+                    recommendation="Validate findings manually and compare against a clean image.",
                 )
             )
     return findings
@@ -212,13 +212,13 @@ def _detect_integrity_findings(by_name: dict) -> list[Finding]:
             findings.append(
                 Finding(
                     id=f"INTEGRITY_{source.upper()}",
-                    title=f"Alteraciones de integridad reportadas por {source}",
-                    severity="Medio",
-                    confidence="Medio",
-                    category="integridad",
-                    description="La verificación de paquetes reportó archivos modificados o inconsistentes.",
+                    title=f"Integrity changes reported by {source}",
+                    severity="Medium",
+                    confidence="Medium",
+                    category="integrity",
+                    description="Package verification reported modified or inconsistent files.",
                     evidence=[result.evidence_path or ""],
-                    recommendation="Distinguir cambios administrativos legítimos de alteraciones maliciosas.",
+                    recommendation="Distinguish legitimate administrative changes from malicious alterations.",
                 )
             )
     return findings
@@ -238,13 +238,13 @@ def _detect_auth_log_abuse(by_name: dict) -> list[Finding]:
         findings.append(
             Finding(
                 id="LOG_BRUTE_FORCE",
-                title="Evidencia de fuerza bruta SSH",
-                severity="Medio",
-                confidence="Alto",
+                title="Evidence of SSH brute force activity",
+                severity="Medium",
+                confidence="High",
                 category="logs",
-                description=f"Se detectaron {failed} eventos compatibles con intentos fallidos de autenticación.",
+                description=f"{failed} events compatible with failed authentication attempts were detected.",
                 evidence=evidence,
-                recommendation="Revisar IPs origen, cuentas afectadas y correlacionar con accesos exitosos posteriores.",
+                recommendation="Review source IPs, affected accounts, and correlate with later successful logins.",
                 metadata={"failed_auth_events": failed, "accepted_auth_events": accepted},
             )
         )
@@ -252,26 +252,26 @@ def _detect_auth_log_abuse(by_name: dict) -> list[Finding]:
         findings.append(
             Finding(
                 id="LOG_USER_CREATION",
-                title="Creación de usuarios observada en logs",
-                severity="Medio",
-                confidence="Medio",
+                title="User creation observed in logs",
+                severity="Medium",
+                confidence="Medium",
                 category="logs",
-                description=f"Se observaron {useradd} eventos compatibles con creación de usuarios.",
+                description=f"{useradd} events compatible with user creation were observed.",
                 evidence=evidence,
-                recommendation="Validar si las altas de usuario fueron autorizadas.",
+                recommendation="Validate whether the user creations were authorized.",
             )
         )
     if sudo >= 10:
         findings.append(
             Finding(
                 id="LOG_SUDO_ACTIVITY",
-                title="Actividad sudo relevante",
-                severity="Bajo",
-                confidence="Medio",
+                title="Relevant sudo activity",
+                severity="Low",
+                confidence="Medium",
                 category="logs",
-                description=f"Se observaron {sudo} eventos sudo recientes.",
+                description=f"{sudo} recent sudo events were observed.",
                 evidence=evidence,
-                recommendation="Revisar comandos sudo ejecutados durante la ventana del incidente.",
+                recommendation="Review sudo commands executed during the incident window.",
             )
         )
     return findings
@@ -287,26 +287,26 @@ def _detect_ssh_config_risks(by_name: dict) -> list[Finding]:
         findings.append(
             Finding(
                 id="SSH_ROOT_LOGIN_ENABLED",
-                title="SSH permite login directo de root",
-                severity="Medio",
-                confidence="Alto",
-                category="accesos",
-                description="La configuración efectiva de SSH indica PermitRootLogin yes.",
+                title="SSH allows direct root login",
+                severity="Medium",
+                confidence="High",
+                category="access",
+                description="The effective SSH configuration indicates PermitRootLogin yes.",
                 evidence=[result.evidence_path or ""],
-                recommendation="Deshabilitar login directo de root tras validar accesos administrativos alternativos.",
+                recommendation="Disable direct root login after validating alternative administrative access.",
             )
         )
     if "passwordauthentication yes" in lower:
         findings.append(
             Finding(
                 id="SSH_PASSWORD_AUTH_ENABLED",
-                title="SSH permite autenticación por password",
-                severity="Medio",
-                confidence="Alto",
-                category="accesos",
-                description="La configuración efectiva de SSH indica PasswordAuthentication yes.",
+                title="SSH allows password authentication",
+                severity="Medium",
+                confidence="High",
+                category="access",
+                description="The effective SSH configuration indicates PasswordAuthentication yes.",
                 evidence=[result.evidence_path or ""],
-                recommendation="Migrar a autenticación por clave y MFA/bastion donde aplique.",
+                recommendation="Migrate to key-based authentication and MFA/bastion access where applicable.",
             )
         )
     return findings

@@ -12,7 +12,7 @@ from modules.ssh_client import RemoteClient
 from modules.utils import safe_name, write_json, write_text
 
 
-ABUSE_PORTS = (22, 21, 23, 25, 465, 587)
+ABUSE_PORTS = (22, 21, 23, 587)
 
 
 def run_abuse_investigation(client: RemoteClient, config: AssessmentConfig, logger: Logger) -> AbuseInvestigationResult:
@@ -32,17 +32,17 @@ def run_abuse_investigation(client: RemoteClient, config: AssessmentConfig, logg
 
     if root_causes:
         result.root_cause = root_causes
-        severity = "Crítico" if any(item.get("user") in ("www-data", "apache", "nginx", "nobody") for item in root_causes) else "Alto"
+        severity = "Critical" if any(item.get("user") in ("www-data", "apache", "nginx", "nobody") for item in root_causes) else "High"
         result.findings.append(
             Finding(
                 id="ABUSE_OUTBOUND_SERVICE_PORTS",
-                title="Proceso originando conexiones salientes a puertos de abuso",
+                title="Process originating outbound connections to abuse ports",
                 severity=severity,
-                confidence="Alto",
+                confidence="High",
                 category="abuse",
-                description="Se identificaron procesos locales con conexiones salientes hacia SSH/FTP/Telnet/SMTP.",
+                description="Local processes were identified with outbound connections to SSH/FTP/Telnet/Submission ports.",
                 evidence=[str(raw_path)],
-                recommendation="Preservar binario, hash y contexto del proceso; bloquear salidas NEW a puertos de abuso si el negocio lo permite.",
+                recommendation="Preserve the binary, hash, and process context; block NEW outbound traffic to abuse ports if business requirements allow it.",
                 metadata={"root_cause_count": len(root_causes)},
             )
         )
@@ -74,7 +74,7 @@ def _extract_remote_endpoint(line: str) -> str | None:
     endpoint_tokens = [token for token in tokens if ":" in token and not token.startswith("users:")]
     if len(endpoint_tokens) >= 2:
         remote = endpoint_tokens[1].strip("[]")
-        if re.search(r":(22|21|23|25|465|587)$", remote):
+        if re.search(r":(22|21|23|587)$", remote):
             return remote
     return None
 
@@ -101,7 +101,7 @@ def _collect_pid_details(client: RemoteClient, pid: str, connections: list[str],
     parsed = _parse_pid_detail(pid, detail.stdout)
     parsed["connections"] = sorted(set(connections))
     parsed["evidence"] = str(path)
-    parsed["confidence"] = "ALTO"
+    parsed["confidence"] = "HIGH"
     parsed["classification"] = _classify(parsed)
     return parsed
 
@@ -131,6 +131,6 @@ def _classify(data: dict[str, object]) -> str:
         ):
             return "SSH Brute Force Bot"
         return "Outbound SSH Abuse Candidate"
-    if any(port in " ".join(data.get("connections", [])) for port in (":25", ":465", ":587")):
-        return "Outbound SMTP Abuse Candidate"
+    if ":587" in " ".join(data.get("connections", [])):
+        return "Outbound Mail Submission Abuse Candidate"
     return "Outbound Abuse Candidate"

@@ -1,18 +1,18 @@
 # linux_ir_remote_assessment
 
-Herramienta profesional de respuesta a incidentes para realizar assessments remotos sobre servidores Linux autorizados mediante SSH.
+Professional incident response tool for remote assessments of authorized Linux servers over SSH.
 
-El objetivo es ayudar a consultores de Talsoft TS a recolectar evidencia, detectar indicadores de compromiso, investigar abuso saliente SSH/FTP/SMTP, identificar persistencia y generar reportes ejecutivos y técnicos sin modificar el sistema por defecto.
+The goal is to help Talsoft TS consultants collect evidence, detect indicators of compromise, investigate outbound SSH/FTP/Telnet/Submission abuse, identify persistence, and generate executive and technical reports without modifying the target system by default.
 
-Modo por defecto: `collect-only`.
+Default mode: `collect-only`.
 
-## Uso Autorizado
+## Authorized Use
 
-Esta herramienta debe utilizarse únicamente sobre sistemas propios o con autorización explícita del cliente o propietario del activo.
+Use this tool only on systems you own or systems where the client or asset owner has granted explicit authorization.
 
-No incluye funcionalidades ofensivas: no explota vulnerabilidades, no realiza fuerza bruta, no evade controles, no implementa movimiento lateral y no instala persistencia.
+The tool does not include offensive capabilities: it does not exploit vulnerabilities, perform brute force attacks, evade controls, perform lateral movement, or install persistence.
 
-## Instalación
+## Installation
 
 ```bash
 python3 -m venv .venv
@@ -20,9 +20,9 @@ source .venv/bin/activate
 pip install -r linux_ir_remote_assessment/requirements.txt
 ```
 
-## Ejemplos de Uso
+## Usage Examples
 
-Recolección sin modificar el sistema:
+Evidence collection without modifying the system:
 
 ```bash
 python3 linux_ir_remote_assessment/main.py \
@@ -32,7 +32,7 @@ python3 linux_ir_remote_assessment/main.py \
   --mode collect-only
 ```
 
-Detección usando clave SSH:
+Detection using an SSH key:
 
 ```bash
 python3 linux_ir_remote_assessment/main.py \
@@ -42,7 +42,7 @@ python3 linux_ir_remote_assessment/main.py \
   --mode detect
 ```
 
-Assessment completo con sudo e investigación de abuso saliente:
+Full assessment with sudo and outbound abuse investigation:
 
 ```bash
 python3 linux_ir_remote_assessment/main.py \
@@ -54,27 +54,27 @@ python3 linux_ir_remote_assessment/main.py \
   --abuse-investigation
 ```
 
-## Modos
+## Modes
 
-- `collect-only`: recolecta evidencia y genera artefactos básicos.
-- `detect`: recolecta evidencia, analiza indicadores y genera hallazgos.
-- `contain`: recolecta, analiza y permite contención confirmada por operador.
-- `full`: recolecta, detecta, contiene y reporta recomendaciones de remediación.
+- `collect-only`: collects evidence and generates basic artifacts.
+- `detect`: collects evidence, analyzes indicators, and generates findings.
+- `contain`: collects, analyzes, and allows operator-confirmed containment.
+- `full`: collects, detects, contains, and reports remediation recommendations.
 
-## Funcionalidades Principales
+## Core Capabilities
 
-- Inventario de sistema, red, usuarios, procesos y conexiones.
-- Revisión de accesos SSH, `authorized_keys`, sudoers y cuentas UID 0.
-- Detección de procesos ejecutándose desde `/tmp`, `/var/tmp` y `/dev/shm`.
-- Investigación de conexiones salientes hacia puertos `22`, `21`, `23`, `25`, `465` y `587`.
-- Detección de cron jobs, servicios systemd, timers, perfiles shell y `LD_PRELOAD` sospechosos.
-- Ejecución de `rkhunter`, `chkrootkit`, `clamscan`, `debsums` y `rpm -Va` si ya existen en el sistema.
-- Análisis básico de logs de autenticación, sudo, SSH y creación de usuarios.
-- Reportes ejecutivos y técnicos en Markdown, HTML y JSON.
+- System, network, user, process, and connection inventory.
+- Review of SSH access, `authorized_keys`, sudoers, and UID 0 accounts.
+- Detection of processes running from `/tmp`, `/var/tmp`, and `/dev/shm`.
+- Investigation of outbound connections to ports `22`, `21`, `23`, and `587`.
+- Detection of suspicious cron jobs, systemd services, timers, shell profiles, and `LD_PRELOAD`.
+- Execution of `rkhunter`, `chkrootkit`, `clamscan`, `debsums`, and `rpm -Va` when already present on the system.
+- Basic analysis of authentication, sudo, SSH, and user-creation logs.
+- Executive and technical reports in Markdown, HTML, and JSON.
 
-## Artefactos Generados
+## Generated Artifacts
 
-Cada ejecución crea una carpeta con timestamp bajo el directorio de salida:
+Each execution creates a timestamped folder under the output directory:
 
 ```text
 reports/<host>_<timestamp>/
@@ -90,18 +90,18 @@ reports/<host>_<timestamp>/
     └── root_cause_analysis.json
 ```
 
-## Contención
+## Containment
 
-La contención solo se ejecuta en modos `contain` o `full`, y requiere confirmación interactiva exacta.
+Containment runs only in `contain` or `full` mode and requires exact interactive confirmation.
 
-Acciones soportadas:
+Supported actions:
 
-- Backup de reglas `iptables`, `nftables` y estado `ufw`.
-- Bloqueo de conexiones salientes nuevas hacia puertos de abuso comunes.
+- Backup of `iptables`, `nftables`, and `ufw` state.
+- Blocking new outbound connections to common abuse ports.
 
-La herramienta no cambia la policy `OUTPUT`, no cierra la sesión SSH actual y no elimina procesos automáticamente.
+The tool does not change the `OUTPUT` policy, does not close the current SSH session, and does not automatically delete processes.
 
-## Estructura
+## Structure
 
 ```text
 linux_ir_remote_assessment/
@@ -114,14 +114,14 @@ linux_ir_remote_assessment/
 └── requirements.txt
 ```
 
-## Recomendaciones Operativas
+## Operational Recommendations
 
-- Ejecutar primero en `collect-only` para preservar evidencia.
-- Usar `detect` cuando el objetivo sea generar hallazgos automáticos sin cambios.
-- Usar `--sudo` cuando el cliente autorice lectura de logs, cron, sudoers y evidencia privilegiada.
-- Preservar binarios sospechosos y hashes antes de detener procesos o cuarentenar archivos.
-- Si hay sospecha de rootkit o alteración de binarios del sistema, priorizar reconstrucción desde imagen limpia.
+- Run `collect-only` first to preserve evidence.
+- Use `detect` when the objective is to generate automated findings without making changes.
+- Use `--sudo` when the client authorizes privileged reads of logs, cron, sudoers, and system evidence.
+- Preserve suspicious binaries and hashes before stopping processes or quarantining files.
+- If rootkit activity or altered system binaries are suspected, prioritize rebuilding from a clean image.
 
-## Limitaciones
+## Limitations
 
-El análisis remoto depende de la integridad del host examinado. Un sistema comprometido puede ocultar procesos, archivos, conexiones o logs. Para incidentes críticos, usar esta herramienta como evaluación inicial y complementar con análisis forense offline.
+Remote analysis depends on the integrity of the examined host. A compromised system may hide processes, files, connections, or logs. For critical incidents, use this tool as an initial assessment and complement it with offline forensic analysis.

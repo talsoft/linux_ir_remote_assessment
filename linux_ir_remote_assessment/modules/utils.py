@@ -64,4 +64,9 @@ def sha256_text(content: str) -> str:
 
 
 def severity_rank(severity: str) -> int:
-    return {"crítico": 4, "critico": 4, "alto": 3, "medio": 2, "bajo": 1}.get(severity.lower(), 0)
+    return {
+        "critical": 4,
+        "high": 3,
+        "medium": 2,
+        "low": 1,
+    }.get(severity.lower(), 0)

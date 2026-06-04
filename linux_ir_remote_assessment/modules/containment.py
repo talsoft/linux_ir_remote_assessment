@@ -10,7 +10,7 @@ from modules.ssh_client import RemoteClient
 from modules.utils import utc_timestamp, write_json, write_text
 
 
-ABUSE_PORTS = (22, 21, 23, 25, 465, 587)
+ABUSE_PORTS = (22, 21, 23, 587)
 
 
 def run_containment(
@@ -20,7 +20,7 @@ def run_containment(
     logger: Logger,
 ) -> list[dict[str, object]]:
     logger.info("Containment mode requested")
-    print("\nContainment will add outbound NEW blocking rules for ports: 22, 21, 23, 25, 465, 587.")
+    print("\nContainment will add outbound NEW blocking rules for ports: 22, 21, 23, 587.")
     print("It will first collect firewall backups and will not change OUTPUT default policy.")
     answer = input("Type APPLY-CONTAINMENT to continue: ").strip()
     if answer != "APPLY-CONTAINMENT":

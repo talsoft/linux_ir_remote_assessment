@@ -1,19 +1,19 @@
 # linux_ir_remote_assessment
 
-Herramienta profesional de assessment remoto Linux para respuesta a incidentes. Se conecta por SSH a servidores Linux propios o explícitamente autorizados y ejecuta una recolección segura de evidencia, detección de indicadores, investigación de abuso saliente y contención opcional confirmada por operador.
+Professional remote Linux incident response assessment tool. It connects over SSH to owned or explicitly authorized Linux servers and performs safe evidence collection, indicator detection, outbound abuse investigation, and optional operator-confirmed containment.
 
-Modo por defecto: `collect-only`.
+Default mode: `collect-only`.
 
-## Principios de Seguridad
+## Security Principles
 
-- Uso exclusivo sobre sistemas propios o con autorización explícita.
-- Sin explotación, fuerza bruta, evasión, movimiento lateral ni persistencia.
-- No modifica el sistema por defecto.
-- No almacena passwords, passphrases ni secretos.
-- La contención requiere modo `contain` o `full` y confirmación interactiva.
-- Prioridad operativa: preservar evidencia, contener, entender causa raíz, remediar.
+- Use only on owned systems or systems with explicit authorization.
+- No exploitation, brute force, evasion, lateral movement, or persistence.
+- No system modification by default.
+- Passwords, passphrases, and secrets are never stored.
+- Containment requires `contain` or `full` mode and interactive confirmation.
+- Operational priority: preserve evidence, contain, understand root cause, remediate.
 
-## Instalación
+## Installation
 
 ```bash
 python3 -m venv .venv
@@ -21,7 +21,7 @@ source .venv/bin/activate
 pip install -r linux_ir_remote_assessment/requirements.txt
 ```
 
-## Uso
+## Usage
 
 ```bash
 python3 linux_ir_remote_assessment/main.py \
@@ -49,43 +49,43 @@ python3 linux_ir_remote_assessment/main.py \
   --abuse-investigation
 ```
 
-## Autenticación
+## Authentication
 
-Soporta:
+Supports:
 
-- SSH key con RSA, ECDSA o ED25519 mediante Paramiko.
-- Passphrase de clave con `--key-passphrase`.
-- Password con `--password`, solicitado por `getpass`.
-- Fallback a password cuando `--key-file` falla y se usa `--fallback-password`.
-- Sudo con detección de disponibilidad y passwordless/password requerido.
+- SSH keys using RSA, ECDSA, or ED25519 through Paramiko.
+- Key passphrases with `--key-passphrase`.
+- Password authentication with `--password`, requested through `getpass`.
+- Password fallback when `--key-file` fails and `--fallback-password` is enabled.
+- Sudo detection for availability, passwordless sudo, and password-required sudo.
 
-## Parámetros
+## Parameters
 
-- `--host`: host autorizado.
-- `--port`: puerto SSH, default `22`.
-- `--user`: usuario SSH.
-- `--key-file`: clave privada SSH.
-- `--key-passphrase`: solicita passphrase.
-- `--password`: solicita password SSH.
-- `--fallback-password`: solicita password si falla la clave.
-- `--sudo`: usa sudo para comandos privilegiados.
+- `--host`: authorized target host.
+- `--port`: SSH port, default `22`.
+- `--user`: SSH username.
+- `--key-file`: SSH private key.
+- `--key-passphrase`: prompt for key passphrase.
+- `--password`: prompt for SSH password.
+- `--fallback-password`: prompt for password if key authentication fails.
+- `--sudo`: use sudo for privileged commands.
 - `--mode`: `collect-only`, `detect`, `contain`, `full`.
-- `--output-dir`: directorio base de salida, default `reports`.
-- `--non-interactive`: no solicita secretos ni confirmaciones.
-- `--abuse-investigation`: fuerza investigación de abuso saliente.
+- `--output-dir`: base output directory, default `reports`.
+- `--non-interactive`: do not prompt for secrets or confirmations.
+- `--abuse-investigation`: force outbound abuse investigation.
 
-## Modos
+## Modes
 
-- `collect-only`: recolecta evidencia y genera reportes básicos.
-- `detect`: recolecta, analiza y genera hallazgos.
-- `contain`: recolecta, analiza y permite contención confirmada.
-- `full`: recolecta, detecta, contiene y reporta recomendaciones. Las remediaciones destructivas quedan como recomendaciones confirmables, no automáticas.
+- `collect-only`: collects evidence and generates basic reports.
+- `detect`: collects evidence, analyzes it, and generates findings.
+- `contain`: collects, analyzes, and allows operator-confirmed containment.
+- `full`: collects, detects, contains, and reports recommendations. Destructive remediation remains confirmable and is not performed automatically.
 
-## Evidencia Recolectada
+## Collected Evidence
 
-Incluye inventario de sistema, usuarios, accesos, SSH, procesos, conexiones, cron, systemd, perfiles shell, LD_PRELOAD, rootkit tools si existen, integridad de paquetes si existe, logs auth/syslog/journal y firewall.
+Includes system inventory, users, access controls, SSH configuration, processes, connections, cron, systemd, shell profiles, `LD_PRELOAD`, rootkit tools when present, package integrity checks when present, authentication/syslog/journal logs, and firewall state.
 
-Las salidas se guardan en:
+Outputs are stored in:
 
 ```text
 <output-dir>/<host>_<timestamp>/
@@ -101,34 +101,32 @@ Las salidas se guardan en:
     └── root_cause_analysis.json
 ```
 
-## Investigación de Abuse Reports
+## Abuse Report Investigation
 
-El módulo `abuse_investigation.py` identifica conexiones salientes hacia:
+The `abuse_investigation.py` module identifies outbound connections to:
 
 - SSH `22`
 - FTP `21`
 - Telnet `23`
-- SMTP `25`
-- SMTPS `465`
 - Submission `587`
 
-Correlaciona PID, usuario, ruta del binario, SHA256, comando completo, hora de inicio y conexiones asociadas.
+It correlates PID, user, binary path, SHA256 hash, full command line, process start time, and associated connections.
 
-## Contención
+## Containment
 
-Solo en `contain` o `full`, con confirmación exacta:
+Only in `contain` or `full` mode, with exact confirmation:
 
 ```text
 APPLY-CONTAINMENT
 ```
 
-Acción aplicada:
+Applied action:
 
-- Backup de `iptables-save`, `nft list ruleset` y `ufw status`.
-- Reglas `iptables` para bloquear conexiones salientes nuevas a `22,21,23,25,465,587`.
+- Backup of `iptables-save`, `nft list ruleset`, and `ufw status`.
+- `iptables` rules that block new outbound connections to `22,21,23,587`.
 
-No cambia la policy de `OUTPUT`, no cierra la sesión SSH actual y no elimina procesos automáticamente.
+The tool does not change the `OUTPUT` policy, does not close the current SSH session, and does not automatically delete processes.
 
-## Limitaciones
+## Limitations
 
-Un sistema comprometido puede ocultar procesos, archivos, conexiones o logs. Para incidentes críticos con sospecha de rootkit, usar esta herramienta como apoyo remoto inicial y priorizar análisis forense offline o reconstrucción desde imagen limpia.
+A compromised system may hide processes, files, connections, or logs. For critical incidents with suspected rootkit activity, use this tool as an initial remote assessment and prioritize offline forensic analysis or rebuilding from a clean image.
