@@ -25,7 +25,7 @@ pip install -r linux_ir_remote_assessment/requirements.txt
 
 ```bash
 python3 linux_ir_remote_assessment/main.py \
-  --host 209.126.107.84 \
+  --host XXX.XXX.XXX.XXX \
   --user root \
   --password \
   --mode collect-only
@@ -33,7 +33,7 @@ python3 linux_ir_remote_assessment/main.py \
 
 ```bash
 python3 linux_ir_remote_assessment/main.py \
-  --host 209.126.107.84 \
+  --host XXX.XXX.XXX.XXX \
   --user root \
   --key-file ~/.ssh/id_ed25519 \
   --mode detect
@@ -41,7 +41,7 @@ python3 linux_ir_remote_assessment/main.py \
 
 ```bash
 python3 linux_ir_remote_assessment/main.py \
-  --host 209.126.107.84 \
+  --host XXX.XXX.XXX.XXX \
   --user admin \
   --password \
   --sudo \

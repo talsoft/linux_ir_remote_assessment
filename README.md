@@ -26,7 +26,7 @@ Evidence collection without modifying the system:
 
 ```bash
 python3 linux_ir_remote_assessment/main.py \
-  --host 209.126.107.84 \
+  --host XXX.XXX.XXX.XXX \
   --user root \
   --password \
   --mode collect-only
@@ -36,7 +36,7 @@ Detection using an SSH key:
 
 ```bash
 python3 linux_ir_remote_assessment/main.py \
-  --host 209.126.107.84 \
+  --host XXX.XXX.XXX.XXX \
   --user root \
   --key-file ~/.ssh/id_ed25519 \
   --mode detect
@@ -46,7 +46,7 @@ Full assessment with sudo and outbound abuse investigation:
 
 ```bash
 python3 linux_ir_remote_assessment/main.py \
-  --host 209.126.107.84 \
+  --host XXX.XXX.XXX.XXX \
   --user admin \
   --password \
   --sudo \
